@@ -4,7 +4,7 @@
  * Implements the ECHO_RES packet.
  *
  * This is sent in response to a ECHO_REQ request. The server doesn't look at
- * or modify the data argument, it just send it back.
+ * or modify the data argument, it just sends it back.
  *
  * Arguments:
  * - Opaque data that is echoed back in response.

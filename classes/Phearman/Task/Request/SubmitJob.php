@@ -57,6 +57,19 @@ class SubmitJob extends Task
         $this->uniqueId = $uniqueId;
     }
 
+    public function setWorkload($data)
+    {
+        /* Check if data argument to set the workload is a string. Throw an
+         * exception if it is not. */
+        if (!is_string($data))
+            throw new Exception('Workload must be a String.');
+
+        /* Set the workload. */
+        $this->workload = $data;
+
+        return $this;
+    }
+
     protected function getDataPart()
     {
         return array(
