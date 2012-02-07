@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Implements the ECHO_REQ packet. When a job server receives this request, it
+ * Implements the ECHO_REQ packet.
+ *
+ * When a job server receives this request, it
  * simply generates a ECHO_RES packet with the data. This is primarily used for
  * testing or debugging.
  *
@@ -17,12 +19,17 @@ namespace Phearman\Task\Request;
 use Phearman\Phearman;
 use Phearman\Task;
 
-class Echo extends Task
+class EchoReq extends Task
 {
     public function __construct($workload)
     {
-        $this->_code     = Phearman::CODE_REQUEST;
-        $this->_type     = Phearman::TYPE_ECHO_REQ;
-        $this->_workload = $workload;
+        $this->code     = Phearman::CODE_REQUEST;
+        $this->type     = Phearman::TYPE_ECHO_REQ;
+        $this->workload = $workload;
+    }
+
+    protected function getDataPart()
+    {
+        return array($this->workload);
     }
 }
