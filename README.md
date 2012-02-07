@@ -7,3 +7,21 @@ It is inspired from Pheanstalk PHP client library for Beanstalkd and tries to
 adhere to the pecl/gearman PHP extension interface and standard.
 
 © Inash Zubair
+
+
+Example
+-------
+
+```php
+<?php
+
+require_once 'phearman_init.php';
+
+use Phearman\Client;
+
+/* Client echo request. */
+$client   = new Client();
+$response = $client->echoRequest('Hello Gearman');
+
+echo $response->getWorkload();
+```
