@@ -54,11 +54,21 @@ abstract class Task
 
     protected function setFromResponse() {}
 
+    public function getTypeName()
+    {
+        $className = explode('\\', get_class($this));
+        $className = array_pop($className);
+        return $className;
+    }
+
     final public function __toString()
     {
         /* Prepare data part. */
         $dataPart = $this->getDataPart();
-        if (count($dataPart) > 0)
+
+        /* Check if dataPart is returned as an array and if it needs to be
+         * joined using the null byte. */
+        if (is_array($dataPart) && count($dataPart) > 0)
             $dataPart = join("\0", $dataPart);
 
         /* Prepare workload together with data part. */

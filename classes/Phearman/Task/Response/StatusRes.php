@@ -34,7 +34,7 @@ class StatusRes extends Task
     public function __construct()
     {
         $this->code = Phearman::CODE_RESPONSE;
-        $this->type = Phearman::TYPE_JOB_CREATED;
+        $this->type = Phearman::TYPE_STATUS_RES;
     }
 
     public function setFromResponse($packet)
