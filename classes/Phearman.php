@@ -6,6 +6,7 @@
  *
  * @author Inash Zubair <inash@leptone.com>
  * @package Phearman
+ * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
 
 namespace Phearman;
@@ -14,6 +15,8 @@ define('PHEARMAN_PATH', realpath(dirname(__FILE__)));
 
 class Phearman
 {
+    const VERSION = '0.1';
+
     /* 4 byte magic codes - This is either "\0REQ" forrequests or "\0RES"
      * for responses. */
     const CODE_REQUEST  = 'REQ';

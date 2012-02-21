@@ -12,6 +12,7 @@
  *
  * @author Inash Zubair <inash@leptone.com>
  * @package Phearman
+ * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
 
 namespace Phearman;
