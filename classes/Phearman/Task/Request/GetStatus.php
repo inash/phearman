@@ -22,14 +22,15 @@ class GetStatus extends Task
 {
     protected $jobHandle;
 
-    public function __construct()
+    public function __construct($jobHandle)
     {
         $this->code = Phearman::CODE_REQUEST;
         $this->type = Phearman::TYPE_GET_STATUS;
+        $this->jobHandle = $jobHandle;
     }
 
     protected function getDataPart()
     {
-        return array($this->jobHandle);
+        return $this->jobHandle;
     }
 }

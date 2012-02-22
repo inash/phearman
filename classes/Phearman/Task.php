@@ -14,14 +14,13 @@
  */
 
 namespace Phearman;
+use Phearman\Exception;
 
 abstract class Task
 {
     protected $code;
     protected $type;
     protected $length;
-
-    private function __construct() {}
 
     final public static function factory($name, $type)
     {
@@ -57,9 +56,12 @@ abstract class Task
 
     public function getTypeName()
     {
-        $className = explode('\\', get_class($this));
-        $className = array_pop($className);
-        return $className;
+        $class = new \ReflectionClass('Phearman\\Phearman');
+        $constants = $class->getConstants();
+
+        $type = array_search($this->getType(), $constants);
+        $type = str_replace('TYPE_', '', $type);
+        return $type;
     }
 
     final public function __toString()
@@ -95,9 +97,9 @@ abstract class Task
     {
         /* Check if method is prefixed with set or get. */
         if (!in_array(strtolower(substr($method, 0, 3)), array('set', 'get'))) {
-            throw new \Exception(
-                'Method ' . get_class($this) . '::' . $method
-              . ' does not exist.');
+            $className = get_class($this);
+            throw new Exception(
+                "Method {$className}::{$method} does not exist.");
         }
 
         /* Transpose method to variable name. */
@@ -110,9 +112,9 @@ abstract class Task
         try {
             $property = $class->getProperty($variable);
         } catch (\ReflectionException $e) {
-            throw new \Exception(
-                'Method ' . get_class($this) . '::' . $method
-              . ' does not exist.');
+            $className = get_class($this);
+            throw new Exception(
+                "Method {$className}::{$method} does not exist.");
         }
 
         /* Perform get or set based on the method prefix. */

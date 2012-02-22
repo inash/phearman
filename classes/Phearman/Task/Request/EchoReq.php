@@ -31,6 +31,6 @@ class EchoReq extends Task
 
     protected function getDataPart()
     {
-        return array($this->workload);
+        return $this->workload;
     }
 }

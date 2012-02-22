@@ -11,47 +11,13 @@
 
 namespace Phearman;
 use Phearman\Exception;
+use Phearman\Connection;
 use Phearman\Task\Request\SubmitJob;
+use Phearman\Task\Request\GetStatus;
 use Phearman\Task\Request\EchoReq;
 
-class Client
+class Client extends Connection
 {
-    private $hosts = array();
-    private $connected = false;
-    private $socket;
-    private $lastTask = null;
-    private $lastTaskResponses = array();
-
-    /**
-     * Create a Gearman client to send jobs to a server.
-     *
-     * @access public
-     * @param string $host
-     * @param string $port
-     * @throws Phearman\Exception
-     * @void
-     */
-    public function __construct($host = 'localhost', $port = 4730)
-    {
-        $errorNumber = $errorString = null;
-
-        $this->socket = @fsockopen($host, $port, $errorNumber, $errorString);
-
-        /* Handle connection errors. */
-        if (!$this->socket) {
-            $errorString = sprintf(
-                'Could not connect to host %s:%s. Reason: %s',
-                $host, $port, $errorString);
-            throw new Exception($errorString, $errorNumber);
-        }
-    }
-
-    public function addServer($host)
-    {
-        if (!in_array($host, $this->hosts))
-            $this->hosts[] = $host;
-    }
-
     /**
      * Submit a job to a Gearman server.
      *
@@ -80,28 +46,27 @@ class Client
         $functionName, $workload, $type = Phearman::TYPE_SUBMIT_JOB,
         $uniqueId = null)
     {
-        /* Reset last task responses array. */
-        $this->lastTaskResponses = array();
+        /* Prepare request. */
+        $task = new SubmitJob($uniqueId, $type);
+        $task->setFunctionName($functionName)
+                       ->setWorkload($workload)
+                       ->setUniqueId($uniqueId);
 
-        /* Prepare current request and store it in the property lastTask. */
-        $this->lastTask = new SubmitJob($uniqueId, $type);
-        $this->lastTask->setFunctionName($functionName)
-                          ->setWorkload($workload)
-                          ->setUniqueId($uniqueId);
+        /* Send the packet over the wire. */
+        $this->adapter->write($task);
 
-        /* Send the current packet over the wire. */
-        $this->send($this->lastTask);
+        $this->log("> {$task->getTypeName()} {$functionName}.");
 
         /* Get immediate response from the Gearman server.
          * eg: JOB_CREATED, etc. */
-        $task = $this->read();
-        $this->lastTaskResponses[] = $task;
+        $response = $this->adapter->read();
+
+        $this->log("< {$response->getTypeName()} {$response->getJobHandle()}.");
 
         /* Check for error and throw exception if an exception response was
          * returned. */
-        if (!$task->getType() == Phearman::TYPE_JOB_CREATED) {
+        if (!$response->getType() == Phearman::TYPE_JOB_CREATED)
             throw new Exception('Bleh?');
-        }
 
         /* Perform second response based on the request type. ie: if the
          * packet type is SUBMIT_JOB, SUBMIT_JOB_HIGH, SUBMIT_JOB_LOW.
@@ -113,90 +78,86 @@ class Client
             Phearman::TYPE_SUBMIT_JOB_HIGH,
             Phearman::TYPE_SUBMIT_JOB_LOW)
         )) {
-            $response = $this->read();
-            $this->lastTaskResponses[] = $response;
+            $response = $this->adapter->read();
             return $response;
         }
 
         /* Return the initial response otherwise. */
-        return $task;
-    }
-
-    /**
-     * Sends an ECHO_REQ request to the server.
-     *
-     * The request is immediately replied back with ECHO_RES with the request
-     * workload.
-     *
-     * @access public
-     * @param string $data
-     * @return \Phearman\Task\Response\EchoRes
-     */
-    public function echoRequest($data)
-    {
-        /* Reset last task responses. */
-        $this->lastTaskResponses = array();
-
-        /* Set current echo request task. */
-        $this->lastTask = new EchoReq($data);
-
-        /* Send request. */
-        $this->send($this->lastTask);
-
-        /* Get response and set it in the last task responses property. */
-        $response = $this->read();
-        $this->lastTaskResponses[] = $response;
-
         return $response;
     }
 
-    public function send($task)
+    /**
+     * Returns the status of a submitted job.
+     *
+     * To retrieve the status of a background job, calling this method will
+     * retrieve the worker response STATUS_RES with the job running status and
+     * percent complete. To follow status in an interval, use this method in
+     * a loop and evaluate until running state of the job is 0.
+     * i.e:
+     * <code>
+     * do {
+     *     $status = $client->getResponse($job->getJobHandle());
+     *     echo 'Progress: ', $status->getPercentCompleteNumerator(), PHP_EOL;
+     * }
+     * while ($status->getRunningStatus() == 1);
+     * </code>
+     *
+     * For non-background jobs, the server forwards any status update messages
+     * (WORK_STATUS) issued by the worker to the client. For jobs that expected
+     * to produce WORK_STATUS responses to the client, call this method in a
+     * loop until the packet WORK_COMPLETE or something else is returned.
+     * i.e:
+     * <code>
+     * do {
+     *     $status = $client->getResponse() // Without an argument.
+     *     echo
+     * }
+     * while ($status->getType() == Phearman::TYPE_WORK_STATUS);
+     * </code>
+     *
+     * @access public
+     * @param $jobHandle null|string
+     * @return Phearman\Task
+     */
+    public function getStatus($jobHandle = null)
     {
-        fwrite($this->socket, $task);
-    }
+        /* Assume we did a background job and we want to check the status of
+         * that background job, in which case, we need to send a GET_STATUS
+         * packet with the job handle. The server will respond with a
+         * STATUS_RES packet. */
+        if ($jobHandle != null) {
+            $task = new GetStatus($jobHandle);
+            $this->adapter->write($task);
 
-    public function read()
-    {
-        $code   = fread($this->socket, 4);
-        $header = fread($this->socket, 8);
-        $header = unpack('N2', $header);
-        $type   = $header[1];
-        $length = $header[2];
+            $this->log("> GET_STATUS {$jobHandle}.");
+        }
 
-        $task = Task::factory($type, Phearman::CODE_RESPONSE);
-        $task->setLength($length);
+        /* Read response from the server. If we're checking the status for a
+         * non-background job, i.e: called this method without an argument,
+         * then the server will forward the WORK_STATUS packets from the
+         * worker. */
+        $response = $this->adapter->read();
 
-        if ($length == 0) return $task;
+        /* Log if response is a WORK_STATUS packet. */
+        if ($response->getType() == Phearman::TYPE_WORK_STATUS) {
+            $this->log(
+                "< WORK_STATUS {$response->getJobHandle()} "
+              . "{$response->getPercentCompleteNumerator()}/"
+              . "{$response->getPercentCompleteDenominator()}%.");
 
-        /* Break up data parts with the workload. */
-        $packet = fread($this->socket, $length);
-        $task->setFromResponse($packet);
+        /* Log if response is a STATUS_RES packet. */
+        } elseif ($response->getType() == Phearman::TYPE_STATUS_RES) {
+            $this->log(
+                "< STATUS_RES {$response->getJobHandle()} "
+              . "{$response->getKnownStatus()}:{$response->getRunningStatus()}:"
+              . "{$response->getPercentCompleteNumerator()}/"
+              . "{$response->getPercentCompleteDenominator()}%.");
 
-        return $task;
-    }
+        /* Log for any other type of response packet. */
+        } else {
+            $this->log("< {$response->getTypeName()}.");
+        }
 
-    public function getLastTask()
-    {
-        return $this->lastTask;
-    }
-
-    public function getLastTaskResponses()
-    {
-        return $this->lastTaskResponses;
-    }
-
-    public function getStatus($jobHandle)
-    {
-        //
-    }
-
-    private function connect()
-    {
-        //
-    }
-
-    private function isConnected()
-    {
-        //
+        return $response;
     }
 }

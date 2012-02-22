@@ -11,15 +11,14 @@
 
 namespace Phearman;
 use Phearman\Exception;
-use Phearman\Adapter;
+use Phearman\Connection;
 use Phearman\Task\Request\CanDo;
 use Phearman\Task\Request\GrabJob;
 use Phearman\Task\Request\PreSleep;
 use Phearman\Task\Request\WorkComplete;
-
 use Phearman\Task\Request\EchoReq;
 
-class Worker extends Adapter
+class Worker extends Connection
 {
     /**
      * Holds the registered functions with the worker.
@@ -32,14 +31,6 @@ class Worker extends Adapter
      * @var $functions array
      */
     private $functions = array();
-
-    /**
-     * Boolean flag to determine whether to log messages.
-     *
-     * @access private
-     * @var $debug boolean
-     */
-    private $debug = false;
 
     /**
      * Register a capability with a given function with the server.
@@ -72,9 +63,55 @@ class Worker extends Adapter
         $this->functions[$jobName] = $functionName;
     }
 
+    /**
+     * Update the status of a running job.
+     *
+     * This method sends the WORK_STATUS request to the server given a job
+     * handle, percent complete numerator and percent complete denominator.
+     *
+     * While executing long running jobs, it might be necessary to send the
+     * progress to the client. As the work progresses this method can be
+     * called through the second argument passed to the job function (which is
+     * the worker itself) providing the job handle and the progress details.
+     *
+     * e.g:
+     * <code>
+     * function exampleJob($job, $worker) {
+     *     $jobHandle = $job->getJobHandle();
+     *     $worker->updateStatus($jobHandle, 33, 100);
+     *     $worker->updateStatus($jobHandle, 66, 100);
+     *     $worker->updateStatus($jobHandle, 100, 100);
+     *     return 'Job completed successfully.';
+     * }
+     * </code>
+     *
+     * @access public
+     * @param $jobHandle string
+     * @param $percentNum integer
+     * @param $percentDen integer
+     * @void
+     */
+    public function updateStatus($jobHandle, $percentNum, $percentDen)
+    {
+        $task = new Task\Request\WorkStatus(
+            $jobHandle, $percentNum, $percentDen);
+        $this->adapter->write($task);
+        $this->log("> WORK_STATUS {$jobHandle} {$percentNum}/{$percentDen}.");
+    }
+
+    /**
+     * Set the worker to work.
+     *
+     * This method connects to the worker to a German server, submits it's
+     * capabilities and goes into the GRAB_JOB loop. When a job is returned
+     * the function associated with the job will be executed.
+     *
+     * @access public
+     * @void
+     */
     public function work()
     {
-        $this->log('Starting work.');
+        $this->log('+ Starting work.');
 
         /* Submit capabilities to the server. */
         foreach ($this->functions as $jobName => $functionName) {
@@ -83,15 +120,16 @@ class Worker extends Adapter
             $task = new CanDo($jobName);
 
             /* Send the task to the server. */
-            $this->log('Registering capability ' . $jobName . ' with server.');
-            $this->send($task);
+            $this->log("+ Registering capability {$jobName} with server.");
+            $this->adapter->write($task);
         }
 
+        /* Main loop to check for jobs. */
         while (true) {
 
             /* Now send a grabJob request and wait for a response. */
-            $this->log('Grabing job from the server.');
-            $this->send(new GrabJob());
+            $this->log('> GRAB_JOB.');
+            $this->adapter->write(new GrabJob());
 
             while (true) {
 
@@ -112,90 +150,34 @@ class Worker extends Adapter
     private function checkForJob()
     {
         /* Read response from server. */
-        $job = $this->read();
-        $this->log('Received response ' . $job->getTypeName() . '.');
+        $job = $this->adapter->read();
+        $this->log("< {$job->getTypeName()}.");
 
         switch ($job->getType()) {
 
             /* Sleep if the response is a no job packet. */
             case Phearman::TYPE_NO_JOB:
-                $this->log('Sending request PreSleep.');
+                $this->log('> PRE_SLEEP.');
                 $task = new PreSleep();
-                $this->send($task);
+                $this->adapter->write($task);
                 break;
 
             /* Check if response is a job assignment */
             case Phearman::TYPE_JOB_ASSIGN:
-                $this->log(
-                    'Executing job ' . $job->getFunctionName() . ' with job '
-                  . 'handle: ' . $job->getJobHandle() . '.');
+                $this->log(sprintf(
+                    '* %s %s.', $job->getFunctionName(), $job->getJobHandle()));
 
                 /* Call the function and do the job. */
-                $output = call_user_func($job->getFunctionName(), $job);
+                $output = call_user_func($job->getFunctionName(), $job, $this);
 
                 /* Create a work complete request from the work. */
                 $task = new WorkComplete($job->getJobHandle());
                 $task->setWorkload($output);
-                $this->send($task);
+                $this->adapter->write($task);
+                $this->log("> WORK_COMPLETE {$job->getJobHandle()}.");
                 break;
         }
 
         return $job;
-    }
-
-    /**
-     * Sets the instance variable debug to true.
-     *
-     * This flag is used by the log method below to determine whether to
-     * print diagnostics to the standard output.
-     *
-     * @public
-     * @param $boolean boolean
-     * @void
-     */
-    public function setDebug($boolean = true)
-    {
-        $this->debug = $boolean;
-    }
-
-    /**
-     * Used to print diagnostics to the standard output.
-     *
-     * @private
-     * @param $message string...
-     * @void.
-     */
-    private function log($message)
-    {
-        if ($this->debug != true) return;
-        echo '[' . date('H:i:s.u') . '] ' . $message, PHP_EOL;
-    }
-
-    /**
-     * Sends an ECHO_REQ request to the server.
-     *
-     * The request is immediately replied back with ECHO_RES with the request
-     * workload.
-     *
-     * @access public
-     * @param string $data
-     * @return \Phearman\Task\Response\EchoRes
-     */
-    public function echoRequest($data)
-    {
-        /* Reset last task responses. */
-        $this->lastTaskResponses = array();
-
-        /* Set current echo request task. */
-        $this->lastTask = new EchoReq($data);
-
-        /* Send request. */
-        $this->send($this->lastTask);
-
-        /* Get response and set it in the last task responses property. */
-        $response = $this->read();
-        $this->lastTaskResponses[] = $response;
-
-        return $response;
     }
 }

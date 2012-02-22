@@ -41,8 +41,8 @@ class WorkComplete extends Task
 
     protected function getDataPart()
     {
-        return join("\0", array(
+        return array(
             $this->jobHandle,
-            $this->workload));
+            $this->workload);
     }
 }
