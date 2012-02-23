@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman\Task\Response;
+use Phearman\Phearman;
+use Phearman\Task;
+
 /**
  * Implements the STATUS_RES packet.
  *
@@ -19,11 +23,6 @@
  * @subpackage Task\Response
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Response;
-use Phearman\Phearman;
-use Phearman\Task;
-
 class StatusRes extends Task
 {
     protected $jobHandle;

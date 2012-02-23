@@ -1,5 +1,8 @@
 <?php
 
+namespace Phearman;
+use Phearman\Exception;
+
 /**
  * Abstract Adapter class.
  *
@@ -10,14 +13,11 @@
  * specific adapter. Intended target adapters are file (which uses the default
  * PHP streams), socket (implementing the socket API) and perhaps cURL.
  *
+ * @abstract
  * @author Inash Zubair <inash@leptone.com>
  * @package Phearman
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman;
-use Phearman\Exception;
-
 abstract class Adapter
 {
     protected $hosts     = array();
@@ -32,7 +32,6 @@ abstract class Adapter
      * @param string $hosts
      * @param string $port
      * @throws Phearman\Exception
-     * @void
      */
     final public function __construct($hosts = 'localhost', $port = 4730)
     {

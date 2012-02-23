@@ -1,5 +1,8 @@
 <?php
 
+namespace Phearman;
+use Phearman\Exception;
+
 /**
  * Abstract Task class. Task classes that encapsulates the differet Gearman
  * job server packets must inherit the abstract Task class.
@@ -8,14 +11,11 @@
  * serialize a task to a packet by the use of the magic method __toString(),
  * etc.
  *
+ * @abstract
  * @author Inash Zubair <inash@leptone.com>
  * @package Phearman
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman;
-use Phearman\Exception;
-
 abstract class Task
 {
     protected $code;
@@ -89,9 +89,8 @@ abstract class Task
      * Magic call method to emulate setters and getters for class variables.
      *
      * @access public
-     * @param $variable string
-     * @param $value mixed
-     * @void
+     * @param string $variable
+     * @param mixed $value
      */
     final public function __call($method, $arguments)
     {

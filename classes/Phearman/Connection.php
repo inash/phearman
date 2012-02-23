@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman;
+use Phearman\Exception;
+use Phearman\Task\Request\EchoReq;
+
 /**
  * This is the abstract connection class inherited by the client and worker.
  *
@@ -8,15 +12,11 @@
  * Echo, etc. Enabling debug options for diagnostics for a client or a worker
  * is also implemented by the Connection class.
  *
+ * @abstract
  * @author Inash Zubair <inash@leptone.com>
  * @package Phearman
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman;
-use Phearman\Exception;
-use Phearman\Task\Request\EchoReq;
-
 abstract class Connection
 {
     /**
@@ -31,7 +31,7 @@ abstract class Connection
      * Boolean flag to determine whether to log messages.
      *
      * @access private
-     * @var $debug boolean
+     * @var boolean
      */
     protected $debug = false;
 
@@ -43,10 +43,9 @@ abstract class Connection
      *
      * @final
      * @access public
-     * @param $hosts string|array
-     * @param $port integer
-     * @param $adapter string|Phearman\Adapter
-     * @void
+     * @param string|array $hosts
+     * @param integer $port
+     * @param string|Phearman\Adapter $adapter
      */
     final public function __construct(
         $hosts = 'localhost', $port = 4730, $adapter = 'socket')
@@ -78,11 +77,10 @@ abstract class Connection
      *
      * @final
      * @access public
-     * @param $adapter string|Phearman\Adapter
-     * @param $hosts string
-     * @param $port integer
+     * @param string|Phearman\Adapter $adapter
+     * @param string $hosts
+     * @param integer $port
      * @throws Phearman\Exception
-     * @void
      */
     final public function setAdapter($adapter, $hosts = 'localhost', $port = 4730)
     {
@@ -134,9 +132,8 @@ abstract class Connection
      * This flag is used by the log method below to determine whether to
      * print diagnostics to the standard output.
      *
-     * @public
-     * @param $boolean boolean
-     * @void
+     * @access public
+     * @param boolean $boolean
      */
     public function setDebug($boolean = true)
     {
@@ -146,9 +143,8 @@ abstract class Connection
     /**
      * Used to print diagnostics to the standard output.
      *
-     * @private
-     * @param $message string...
-     * @void.
+     * @access private
+     * @param string $message
      */
     protected function log($message)
     {

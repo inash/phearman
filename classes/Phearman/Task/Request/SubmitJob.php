@@ -1,7 +1,14 @@
 <?php
 
+namespace Phearman\Task\Request;
+use Phearman\Phearman;
+use Phearman\Task;
+use Phearman\Exception;
+
 /**
- * Implements the SUBMIT_JOB, SUBMIT_JOB_BG, SUBMIT_JOB_HIGH,
+ * Implements the SUBMIT_JOB* client request packets.
+ *
+ * The family of packets are SUBMIT_JOB, SUBMIT_JOB_BG, SUBMIT_JOB_HIGH,
  * SUBMIT_JOB_HIGH_BG, SUBMIT_JOB_LOW, SUBMIT_JOB_LOW_BG packets.
  *
  * A client issues one of these when a job needs to be run. The server will then
@@ -25,12 +32,6 @@
  * @subpackage Task\Request
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Request;
-use Phearman\Phearman;
-use Phearman\Task;
-use Phearman\Exception;
-
 class SubmitJob extends Task
 {
     protected $functionName;

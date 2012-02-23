@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman;
+
+define('PHEARMAN_PATH', realpath(dirname(__FILE__)));
+
 /**
  * Main Phearman class houses the different library constants used through out
  * library, initializing and autoloading.
@@ -8,11 +12,6 @@
  * @package Phearman
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman;
-
-define('PHEARMAN_PATH', realpath(dirname(__FILE__)));
-
 class Phearman
 {
     const VERSION = '0.1';

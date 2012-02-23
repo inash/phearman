@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman\Task\Response;
+use Phearman\Phearman;
+use Phearman\Task;
+
 /**
  * Implements the JOB_ASSIGN worker response packet.
  *
@@ -18,11 +22,6 @@
  * @subpackage Task\Response
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Response;
-use Phearman\Phearman;
-use Phearman\Task;
-
 class JobAssign extends Task
 {
     protected $jobHandle;

@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman\Task\Request;
+use Phearman\Phearman;
+use Phearman\Task;
+
 /**
  * Implements the WORK_STATUS worker request packet.
  *
@@ -19,11 +23,6 @@
  * @subpackage Task\Request
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Request;
-use Phearman\Phearman;
-use Phearman\Task;
-
 class WorkStatus extends Task
 {
     protected $jobHandle;

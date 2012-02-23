@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman\Task\Response;
+use Phearman\Phearman;
+use Phearman\Task;
+
 /**
  * Implements the NOOP worker response packet.
  *
@@ -13,11 +17,6 @@
  * @subpackage Task\Response
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Response;
-use Phearman\Phearman;
-use Phearman\Task;
-
 class Noop extends Task
 {
     public function __construct()

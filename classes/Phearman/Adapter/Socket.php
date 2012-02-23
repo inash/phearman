@@ -1,5 +1,10 @@
 <?php
 
+namespace Phearman\Adapter;
+use Phearman\Phearman;
+use Phearman\Adapter;
+use Phearman\Task;
+
 /**
  * The concrete Socket adapter impementation.
  *
@@ -10,12 +15,6 @@
  * @subpackage Adapter
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Adapter;
-use Phearman\Phearman;
-use Phearman\Adapter;
-use Phearman\Task;
-
 final class Socket extends Adapter
 {
     protected function connect()

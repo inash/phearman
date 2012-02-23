@@ -1,5 +1,9 @@
 <?php
 
+namespace Phearman\Task\Request;
+use Phearman\Phearman;
+use Phearman\Task;
+
 /**
  * Implements the ECHO_REQ packet.
  *
@@ -15,11 +19,6 @@
  * @subpackage Task\Request
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Request;
-use Phearman\Phearman;
-use Phearman\Task;
-
 class EchoReq extends Task
 {
     public function __construct($workload)

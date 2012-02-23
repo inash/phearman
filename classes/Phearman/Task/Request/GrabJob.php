@@ -1,5 +1,10 @@
 <?php
 
+namespace Phearman\Task\Request;
+use Phearman\Phearman;
+use Phearman\Task;
+use Phearman\Exception;
+
 /**
  * Implements the GRAB_JOB worker request packet.
  *
@@ -15,12 +20,6 @@
  * @subpackage Task\Request
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman\Task\Request;
-use Phearman\Phearman;
-use Phearman\Task;
-use Phearman\Exception;
-
 class GrabJob extends Task
 {
     public function __construct()

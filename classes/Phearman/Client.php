@@ -1,5 +1,12 @@
 <?php
 
+namespace Phearman;
+use Phearman\Exception;
+use Phearman\Connection;
+use Phearman\Task\Request\SubmitJob;
+use Phearman\Task\Request\GetStatus;
+use Phearman\Task\Request\EchoReq;
+
 /**
  * Main Phearman Client class. This class is primarily used to submit jobs
  * to the Gearman job server.
@@ -8,14 +15,6 @@
  * @package Phearman
  * @license http://www.opensource.org/licenses/BSD-3-Clause
  */
-
-namespace Phearman;
-use Phearman\Exception;
-use Phearman\Connection;
-use Phearman\Task\Request\SubmitJob;
-use Phearman\Task\Request\GetStatus;
-use Phearman\Task\Request\EchoReq;
-
 class Client extends Connection
 {
     /**
@@ -116,7 +115,7 @@ class Client extends Connection
      * </code>
      *
      * @access public
-     * @param $jobHandle null|string
+     * @param null|string $jobHandle
      * @return Phearman\Task
      */
     public function getStatus($jobHandle = null)

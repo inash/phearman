@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Main Phearman Worker class. This is the primary class to setup Gearman
- * workers, attach functions to it and set it to work under a run loop.
- *
- * @author Inash Zubair <inash@leptone.com>
- * @package Phearman
- * @license http://www.opensource.org/licenses/BSD-3-Clause
- */
-
 namespace Phearman;
 use Phearman\Exception;
 use Phearman\Connection;
@@ -18,6 +9,14 @@ use Phearman\Task\Request\PreSleep;
 use Phearman\Task\Request\WorkComplete;
 use Phearman\Task\Request\EchoReq;
 
+/**
+ * Main Phearman Worker class. This is the primary class to setup Gearman
+ * workers, attach functions to it and set it to work under a run loop.
+ *
+ * @author Inash Zubair <inash@leptone.com>
+ * @package Phearman
+ * @license http://www.opensource.org/licenses/BSD-3-Clause
+ */
 class Worker extends Connection
 {
     /**
@@ -28,7 +27,7 @@ class Worker extends Connection
      * capability.
      *
      * @access private
-     * @var $functions array
+     * @var array
      */
     private $functions = array();
 
@@ -43,10 +42,9 @@ class Worker extends Connection
      * a valid function, this method throws an exception.
      *
      * @access public
-     * @param $jobName string
-     * @param $functionName string
+     * @param string $jobName
+     * @param string $functionName
      * @throws Phearman\Exception
-     * @void
      */
     public function addFunction($jobName, $functionName = null)
     {
@@ -86,10 +84,9 @@ class Worker extends Connection
      * </code>
      *
      * @access public
-     * @param $jobHandle string
-     * @param $percentNum integer
-     * @param $percentDen integer
-     * @void
+     * @param string $jobHandle
+     * @param integer $percentNum
+     * @param integer $percentDen
      */
     public function updateStatus($jobHandle, $percentNum, $percentDen)
     {
@@ -107,7 +104,6 @@ class Worker extends Connection
      * the function associated with the job will be executed.
      *
      * @access public
-     * @void
      */
     public function work()
     {
