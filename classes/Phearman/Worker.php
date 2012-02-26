@@ -244,8 +244,32 @@ class Worker extends Connection
 
             while (true) {
 
-                /* Check for job from the job server. */
-                $job = $this->checkForJob();
+                /* Read response from server. */
+                $job = $this->adapter->read();
+                $this->log("< {$job->getTypeName()}.");
+
+                /* Sleep if the response is a no job packet. */
+                if ($job->getType() == Phearman::TYPE_NO_JOB) {
+                    $this->log('> PRE_SLEEP.');
+                    $task = new PreSleep();
+                    $this->adapter->write($task);
+                }
+
+                /* Check if response is a job assignment */
+                elseif ($job->getType() == Phearman::TYPE_JOB_ASSIGN) {
+                    $this->log(sprintf(
+                        '* %s %s.', $job->getFunctionName(), $job->getJobHandle()));
+
+                    /* Call the function and do the job. */
+                    $functionName = $job->getFunctionName();
+                    $output = call_user_func($this->functions[$functionName], $job, $this);
+
+                    /* Create a work complete request from the work. */
+                    $task = new WorkComplete($job->getJobHandle());
+                    $task->setWorkload($output);
+                    $this->adapter->write($task);
+                    $this->log("> WORK_COMPLETE {$job->getJobHandle()}.");
+                }
 
                 /* Check if response is a wake up call (NOOP) from the server.
                  * If so, continue the parent loop process, starting by grabbing
@@ -358,40 +382,5 @@ class Worker extends Connection
         $jobName = ($jobName != null) ? $jobName : $array[1];
         $this->functions[$jobName] = $array;
         return;
-    }
-
-    private function checkForJob()
-    {
-        /* Read response from server. */
-        $job = $this->adapter->read();
-        $this->log("< {$job->getTypeName()}.");
-
-        switch ($job->getType()) {
-
-            /* Sleep if the response is a no job packet. */
-            case Phearman::TYPE_NO_JOB:
-                $this->log('> PRE_SLEEP.');
-                $task = new PreSleep();
-                $this->adapter->write($task);
-                break;
-
-            /* Check if response is a job assignment */
-            case Phearman::TYPE_JOB_ASSIGN:
-                $this->log(sprintf(
-                    '* %s %s.', $job->getFunctionName(), $job->getJobHandle()));
-
-                /* Call the function and do the job. */
-                $functionName = $job->getFunctionName();
-                $output = call_user_func($this->functions[$functionName], $job, $this);
-
-                /* Create a work complete request from the work. */
-                $task = new WorkComplete($job->getJobHandle());
-                $task->setWorkload($output);
-                $this->adapter->write($task);
-                $this->log("> WORK_COMPLETE {$job->getJobHandle()}.");
-                break;
-        }
-
-        return $job;
     }
 }
