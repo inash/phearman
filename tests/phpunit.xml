@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<phpunit backupGlobals="true"
+         colors="true"
+         bootstrap="bootstrap.php">
+    <testsuite name="Phearman">
+        <directory>./</directory>
+    </testsuite>
+    <logging>
+        <log type="coverage-html" target="./coverage" charset="utf-8"
+             yui="true" highlight="true"
+             lowUpperBound="35" highLowerBound="70" />
+        <log type="testdox-text" target="./testdox.txt" />
+    </logging>
+    <filter>
+        <whitelist addUncoveredFilesFromWhiteList="false">
+            <directory suffix=".php">../classes</directory>
+        </whitelist>
+    </filter>
+</phpunit>

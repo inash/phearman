@@ -2,6 +2,7 @@
 
 namespace Phearman\Adapter;
 use Phearman\Phearman;
+use Phearman\Exception;
 use Phearman\Adapter;
 use Phearman\Task;
 
